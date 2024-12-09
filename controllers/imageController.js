@@ -70,7 +70,7 @@ router.post('/upload-and-predict',upload.single('file'),async(req,res)=>{
   });
   await image.save();
   // Cleanup temporary file
-  console.log(image)
+  
   fs.unlinkSync(file.path);
   // Respond with success
   res.status(200)
