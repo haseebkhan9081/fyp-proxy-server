@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "devStart": "nodemon index.js",
-    "build": "vercel build"
+    "build": "npm run vercel build"
   },
   "author": "",
   "license": "ISC",
