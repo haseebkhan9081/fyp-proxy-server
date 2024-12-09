@@ -1,16 +1,15 @@
 import express from 'express';
-import Image from '../models/imageModel.js';  
 import multer from 'multer';
-import streamifier from 'streamifier';
 import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs';
+import streamifier from 'streamifier';
+import Image from '../models/imageModel.js';
+import { connectDB } from '../db.js';
+import dotenv from 'dotenv';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+dotenv.config();
+
 const router = express.Router();
+
 // Configure Multer to store files in memory
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -19,12 +18,29 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // Set the max file size to 50MB
   },
 });
-// Example route to get all users
-router.post('/', async (req, res) => {
+
+// Cloudinary configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Route for fetching images based on the user's email
+router.post('/', upload.none(), async (req, res) => {
   try {
-    const {useremail} = req.body;
-    console.log("useremail:",useremail)
-const images = await Image.find({ userEmail: useremail }).sort({ _id: -1 });
+    const { useremail } = req.body; // Extract useremail from FormData
+
+    if (!useremail) {
+      return res.status(400).json({ error: 'User email is required' });
+    }
+
+    console.log('useremail:', useremail);
+
+    // Find images associated with the user's email
+    const images = await Image.find({ userEmail: useremail }).sort({ _id: -1 });
+
+    // Return the fetched images
     res.json(images);
   } catch (err) {
     console.error(err);
@@ -32,8 +48,7 @@ const images = await Image.find({ userEmail: useremail }).sort({ _id: -1 });
   }
 });
 
-
-// Upload image to Cloudinary without saving it locally
+// Function to upload image to Cloudinary without saving it locally
 const uploadImageToCloudinary = async (buffer, publicId) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -41,15 +56,16 @@ const uploadImageToCloudinary = async (buffer, publicId) => {
       (error, result) => {
         if (error) reject(error);
         else resolve(result);
-      }
+      },
     );
     streamifier.createReadStream(buffer).pipe(stream);
   });
 };
+
 // Route for uploading and predicting
 router.post('/upload-and-predict', upload.single('file'), async (req, res) => {
   try {
-    const { username, useremail } = req.body; // Extract additional fields
+    const { username, useremail } = req.body; // Extract both username and useremail from FormData
     const file = req.file;
 
     if (!file) {
