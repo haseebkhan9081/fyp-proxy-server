@@ -13,7 +13,12 @@ cloudinary.config({
 const router = express.Router();
 // Configure Multer to store files in memory
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // Set the max file size to 50MB
+  },
+});
 // Example route to get all users
 router.post('/', async (req, res) => {
   try {
