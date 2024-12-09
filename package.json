@@ -1,12 +1,12 @@
 {
-  "name": "server",
+  "name": "back_end",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "devStart": "nodemon index.js",
+    "build": "vercel build"
   },
   "author": "",
   "license": "ISC",
